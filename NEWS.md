@@ -1,3 +1,8 @@
+# nflplotR 1.0.1
+
+* Updated the internal logo and wordmark files with the new Washington Commanders design. 
+* Fixed some issues with `theme-elements` and updated examples.
+
 # nflplotR 1.0.0
 
 * Added the `geom_nfl_logos()` geom.

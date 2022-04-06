@@ -1,6 +1,6 @@
 Package: nflplotR
 Title: NFL Logo Plots in 'ggplot2'
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: 
     person("Sebastian", "Carl", , "mrcaseb@gmail.com", role = c("aut", "cre"))
 Description: A set of functions to visualize National Football League
@@ -20,8 +20,8 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.1.2
 NeedsCompilation: no
-Packaged: 2022-01-20 20:20:44 UTC; S.Carl
+Packaged: 2022-04-06 16:16:57 UTC; ne48wop
 Author: Sebastian Carl [aut, cre]
 Maintainer: Sebastian Carl <mrcaseb@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-01-21 09:22:50 UTC
+Date/Publication: 2022-04-06 17:00:02 UTC
