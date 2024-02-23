@@ -62,4 +62,7 @@ table <- df \%>\%
 }
 \seealso{
 The player headshot rendering function \code{\link[=gt_nfl_headshots]{gt_nfl_headshots()}}.
+
+The article that describes how nflplotR works with the 'gt' package
+\url{https://nflplotr.nflverse.com/articles/gt.html}
 }

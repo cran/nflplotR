@@ -16,6 +16,8 @@
 #'
 #' @return An object of class `gt_tbl`.
 #' @seealso The player headshot rendering function [gt_nfl_headshots()].
+#' @seealso The article that describes how nflplotR works with the 'gt' package
+#'    <https://nflplotr.nflverse.com/articles/gt.html>
 #' @export
 #' @section Output of below example:
 #' \if{html}{\figure{logo_tbl.png}{options: width=75\%}}
@@ -47,10 +49,10 @@ gt_nfl_logos <- function(gt_object,
                          locations = NULL){
   gt_nflplotR_image(
     gt_object = gt_object,
-    columns = columns,
+    columns = {{ columns }},
     height = height,
     locations = locations,
-    type = "logos"
+    type = "logo"
   )
 }
 
@@ -62,10 +64,89 @@ gt_nfl_wordmarks <- function(gt_object,
                              locations = NULL){
   gt_nflplotR_image(
     gt_object = gt_object,
-    columns = columns,
+    columns = {{ columns }},
     height = height,
     locations = locations,
-    type = "wordmarks"
+    type = "wordmark"
+  )
+}
+
+#' Render Logos, Wordmarks, and Headshots in 'gt' Table Column Labels
+#'
+#' @description Translate NFL team abbreviations into logos and wordmarks or
+#'  NFL player gsis IDs to player headshots and render these images in
+#'  column labels of 'gt' tables.
+#'
+#' @inheritParams gt_nfl_logos
+#' @param ... Currently not in use
+#' @param type One of `"logo"`, `"wordmark"`, or `"headshot"` selecting whether
+#'   to render a team's logo or wordmark image, or a player's headshot.
+#'
+#' @return An object of class `gt_tbl`.
+#' @seealso The article that describes how nflplotR works with the 'gt' package
+#'    <https://nflplotr.nflverse.com/articles/gt.html>
+#' @seealso The logo and wordmark rendering functions [gt_nfl_logos()] and
+#'   [gt_nfl_wordmarks()].
+#' @seealso The player headshot rendering function [gt_nfl_headshots()].
+#' @export
+#' @section Output of below example:
+#' \if{html}{\figure{cols_label.png}{options: width=75\%}}
+#' @examples
+#' \donttest{
+#' library(gt)
+#' label_df <- data.frame(
+#'   "00-0036355" = 1,
+#'   "00-0033873" = 2,
+#'   "LAC" = 11,
+#'   "KC" = 12,
+#'   check.names = FALSE
+#' )
+#'
+#' # create gt table and translate player IDs and team abbreviations
+#' # into headshots, logos, and wordmarks
+#' table <- gt::gt(label_df) %>%
+#'   nflplotR::gt_nfl_cols_label(
+#'     columns = gt::starts_with("00"),
+#'     type = "headshot"
+#'   ) %>%
+#'   nflplotR::gt_nfl_cols_label("LAC", type = "wordmark") %>%
+#'   nflplotR::gt_nfl_cols_label("KC", type = "logo")
+#' }
+gt_nfl_cols_label <- function(gt_object,
+                              columns = gt::everything(),
+                              ...,
+                              height = 30,
+                              type = c("logo", "wordmark", "headshot")){
+
+  type <- rlang::arg_match(type)
+
+  if (is.numeric(height)) {
+    height <- paste0(height, "px")
+  }
+
+  gt::cols_label_with(
+    data = gt_object,
+    columns = {{ columns }},
+    fn = function(x){
+      if (type == "headshot"){
+        headshots <- load_headshots()
+        lookup <- headshots$headshot_nfl
+        names(lookup) <- headshots$gsis_id
+        image_url <- lookup[x]
+        out <- gt::web_image(image_url, height = height)
+        out[is.na(image_url)] <- x[is.na(image_url)]
+      } else {
+        team_abbr <- nflreadr::clean_team_abbrs(as.character(x), keep_non_matches = FALSE)
+        # Create the image URI
+        uri <- get_image_uri(team_abbr = team_abbr, type = type)
+        # Generate the Base64-encoded image and place it within <img> tags
+        out <- paste0("<img src=\"", uri, "\" style=\"height:", height, ";\">")
+        # If the image uri returns NA we didn't find a match. We will return the
+        # actual value then to avoid removing a label
+        out[is.na(uri)] <- x[is.na(uri)]
+      }
+      gt::html(out)
+    }
   )
 }
 
@@ -73,7 +154,7 @@ gt_nflplotR_image <- function(gt_object,
                               columns,
                               height = 30,
                               locations = NULL,
-                              type = c("logos", "wordmarks")){
+                              type = c("logo", "wordmark")){
 
   rlang::check_installed("gt (>= 0.8.0)", "to render images in gt tables.")
 
@@ -95,7 +176,12 @@ gt_nflplotR_image <- function(gt_object,
       # Create the image URI
       uri <- get_image_uri(team_abbr = team_abbr, type = type)
       # Generate the Base64-encoded image and place it within <img> tags
-      paste0("<img src=\"", uri, "\" style=\"height:", height, ";\">")
+      out <- paste0("<img src=\"", uri, "\" style=\"height:", height, ";\">")
+      out <- lapply(out, gt::html)
+      # If the image uri returns NA we didn't find a match. We will return the
+      # actual value then to allow the user to call gt::sub_missing()
+      out[is.na(uri)] <- x[is.na(uri)]
+      out
     }
   )
 
@@ -103,11 +189,11 @@ gt_nflplotR_image <- function(gt_object,
 
 # Taken from gt package and modified for nflplotR purposes
 # Get image URIs from image lists as a vector Base64-encoded image strings
-get_image_uri <- function(team_abbr, type = c("logos", "wordmarks")) {
+get_image_uri <- function(team_abbr, type = c("logo", "wordmark")) {
 
   lookup_list <- switch (type,
-    "logos" = logo_list,
-    "wordmarks" = wordmark_list
+    "logo" = logo_list,
+    "wordmark" = wordmark_list
   )
 
   vapply(
@@ -115,6 +201,8 @@ get_image_uri <- function(team_abbr, type = c("logos", "wordmarks")) {
     FUN.VALUE = character(1),
     USE.NAMES = FALSE,
     FUN = function(team) {
+      # every non match will return NULL which is when we want NA
+      if (is.null(lookup_list[[team]])) return(NA_character_)
       paste0(
         "data:", "image/png",
         ";base64,", base64enc::base64encode(lookup_list[[team]])
@@ -191,12 +279,18 @@ gt_nfl_headshots <- function(gt_object,
         FUN.VALUE = character(1),
         USE.NAMES = FALSE,
         FUN = function(id) {
+          if(is.na(id) | !is_gsis(id)) return(NA_character_)
           ret <- headshot_map$headshot_nfl[headshot_map$gsis_id == id]
           if(length(ret) == 0) ret <- na_headshot()
           ret
         }
       )
-      gt::web_image(image_urls, height = height)
+      img_tags <- gt::web_image(image_urls, height = height)
+      # gt::web_image inserts a placeholder for NAs
+      # We want the actual input instead because users might call
+      # gt::sub_missing which defaults to "---"
+      img_tags[is.na(image_urls)] <- gsis[is.na(image_urls)]
+      img_tags
     }
   )
 }

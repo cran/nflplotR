@@ -75,21 +75,21 @@ team abbreviation. The latter can be checked with \code{\link[=valid_team_names]
 }
 \section{Aesthetics}{
 
-\code{geom_nfl_logos()} understands the following aesthetics (required aesthetics are in bold):
-\itemize{
-\item{\strong{x}}{ - The x-coordinate.}
-\item{\strong{y}}{ - The y-coordinate.}
-\item{\strong{team_abbr}}{ - The team abbreviation. Should be one of \code{\link[=valid_team_names]{valid_team_names()}}. The function tries to clean team names internally by calling \code{\link[nflreadr:clean_team_abbrs]{nflreadr::clean_team_abbrs()}}}
-\item{\code{alpha = NULL}}{ - The alpha channel, i.e. transparency level, as a numerical value between 0 and 1.}
-\item{\code{colour = NULL}}{ - The image will be colorized with this colour. Use the special character \code{"b/w"} to set it to black and white. For more information on valid colour names in ggplot2 see \url{https://ggplot2.tidyverse.org/articles/ggplot2-specs.html?q=colour#colour-and-fill}}
-\item{\code{angle = 0}}{ - The angle of the image as a numerical value between 0° and 360°.}
-\item{\code{hjust = 0.5}}{ - The horizontal adjustment relative to the given x coordinate. Must be a numerical value between 0 and 1.}
-\item{\code{vjust = 0.5}}{ - The vertical adjustment relative to the given y coordinate. Must be a numerical value between 0 and 1.}
-\item{\code{width = 1.0}}{ - The desired width of the image in \code{npc} (Normalised Parent Coordinates).
+\code{geom_nfl_logos()} understands the following aesthetics (required aesthetics have no default value):
+\describe{
+\item{\code{x}}{The x-coordinate. Required.}
+\item{\code{y}}{The y-coordinate. Required.}
+\item{\code{team_abbr}}{The team abbreviation. Should be one of \code{\link[=valid_team_names]{valid_team_names()}}. The function tries to clean team names internally by calling \code{\link[nflreadr:clean_team_abbrs]{nflreadr::clean_team_abbrs()}}. Note: \code{"NFL"}, \code{"AFC"}, \code{"NFC"} are valid abbreviations! Required.}
+\item{\code{alpha = NULL}}{The alpha channel, i.e. transparency level, as a numerical value between 0 and 1.}
+\item{\code{colour = NULL}}{The image will be colorized with this colour. Use the special character \code{"b/w"} to set it to black and white. For more information on valid colour names in ggplot2 see \url{https://ggplot2.tidyverse.org/articles/ggplot2-specs.html?q=colour#colour-and-fill}}
+\item{\code{angle = 0}}{The angle of the image as a numerical value between 0° and 360°.}
+\item{\code{hjust = 0.5}}{The horizontal adjustment relative to the given x coordinate. Must be a numerical value between 0 and 1.}
+\item{\code{vjust = 0.5}}{The vertical adjustment relative to the given y coordinate. Must be a numerical value between 0 and 1.}
+\item{\code{width = 1.0}}{The desired width of the image in \code{npc} (Normalised Parent Coordinates).
 The default value is set to 1.0 which is \emph{big} but it is necessary
 because all used values are computed relative to the default.
 A typical size is \code{width = 0.075} (see below examples).}
-\item{\code{height = 1.0}}{ - The desired height of the image in \code{npc} (Normalised Parent Coordinates).
+\item{\code{height = 1.0}}{The desired height of the image in \code{npc} (Normalised Parent Coordinates).
 The default value is set to 1.0 which is \emph{big} but it is necessary
 because all used values are computed relative to the default.
 A typical size is \code{height = 0.1} (see below examples).}
@@ -148,12 +148,11 @@ ggplot(df, aes(x = a, y = b)) +
   geom_label(aes(label = teams), nudge_y = -0.35, alpha = 0.5) +
   theme_void()
 
-# it's also possible to plot conference logos
-conf <- data.frame(a = 1:2, b = 0, teams = c("AFC", "NFC"))
-ggplot(conf, aes(x = a, y = b)) +
-  geom_nfl_logos(aes(team_abbr = teams), width = 0.3) +
-  geom_label(aes(label = teams), nudge_y = -0.4, alpha = 0.5) +
-  coord_cartesian(xlim = c(0.5,2.5), ylim = c(-0.75,.75)) +
+# it's also possible to plot NFL and conference logos
+dat <- data.frame(a = c(1.5, 1:2), b = c(1, 0, 0), teams = c("NFL", "AFC", "NFC"))
+ggplot(dat, aes(x = a, y = b)) +
+  geom_nfl_logos(aes(team_abbr = teams), width = 0.25) +
+  coord_cartesian(xlim = c(0.5,2.5), ylim = c(-0.75, 1.75)) +
   theme_void()
 }
 }
