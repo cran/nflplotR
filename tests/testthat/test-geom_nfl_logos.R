@@ -36,23 +36,30 @@ test_that("logo geom works", {
   # apply alpha via an aesthetic from inside the dataset `df_a`
   p1 <- ggplot(df_a, aes(x = a, y = b)) +
     geom_nfl_logos(aes(team_abbr = teams, alpha = alpha), width = 0.04) +
-    geom_label(aes(label = teams), nudge_y = -0.35, alpha = 0.5) +
+    geom_label(aes(label = teams), nudge_y = -0.35, alpha = 0.5, fill = "transparent") +
     scale_alpha_identity() +
     theme_void()
 
   # apply alpha and colour via an aesthetic from inside the dataset `df_b`
   p2 <- ggplot(df_b, aes(x = a, y = b)) +
     geom_nfl_logos(aes(team_abbr = teams, colour = colour), width = 0.04) +
-    geom_label(aes(label = teams), nudge_y = -0.35, alpha = 0.5) +
+    geom_label(aes(label = teams), nudge_y = -0.35, alpha = 0.5, fill = "transparent") +
     scale_color_identity() +
     theme_void()
 
   p3 <- ggplot(df_c, aes(x = a, y = b)) +
     geom_nfl_logos(aes(team_abbr = teams), width = 0.04) +
-    geom_label(aes(label = teams), nudge_y = -0.4, alpha = 0.5) +
+    geom_label(aes(label = teams), nudge_y = -0.4, alpha = 0.5, fill = "transparent") +
     theme_void()
 
   vdiffr::expect_doppelganger("p1", p1)
   vdiffr::expect_doppelganger("p2", p2)
   vdiffr::expect_doppelganger("p3", p3)
+
+  # Team name mismatch
+  p4 <- data.frame(a = c("LAC", "LARRR"), b = 1:2, c = 10:11) |>
+    ggplot(aes(x = b, y = c)) +
+    geom_nfl_logos(aes(team_abbr = a), width = 0.4, hjust = 0)
+
+  expect_snapshot(out <- ggplotGrob(p4))
 })

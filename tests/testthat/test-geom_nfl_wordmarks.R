@@ -32,7 +32,7 @@ test_that("wordmark geom works", {
   # apply alpha via an aesthetic from inside the dataset `df_a`
   p1 <- ggplot(df_a, aes(x = a, y = b)) +
     geom_nfl_wordmarks(aes(team_abbr = teams, alpha = alpha), width = 0.12) +
-    geom_label(aes(label = teams), nudge_y = -0.20, alpha = 0.5) +
+    geom_label(aes(label = teams), nudge_y = -0.20, alpha = 0.5, fill = "transparent") +
     scale_x_continuous(expand = expansion(add = 0.5)) +
     scale_alpha_identity() +
     theme_void()
@@ -40,7 +40,7 @@ test_that("wordmark geom works", {
   # apply colour via an aesthetic from inside the dataset `df_b`
   p2 <- ggplot(df_b, aes(x = a, y = b)) +
     geom_nfl_wordmarks(aes(team_abbr = teams, colour = colour), width = 0.12) +
-    geom_label(aes(label = teams), nudge_y = -0.20, alpha = 0.5) +
+    geom_label(aes(label = teams), nudge_y = -0.20, alpha = 0.5, fill = "transparent") +
     scale_x_continuous(expand = expansion(add = 0.5)) +
     scale_alpha_identity() +
     scale_color_identity() +
@@ -48,4 +48,11 @@ test_that("wordmark geom works", {
 
   vdiffr::expect_doppelganger("p1", p1)
   vdiffr::expect_doppelganger("p2", p2)
+
+  # Team name mismatch
+  p3 <- data.frame(a = c("LAC", "LARRR"), b = 1:2, c = 10:11) |>
+    ggplot(aes(x = b, y = c)) +
+    geom_nfl_wordmarks(aes(team_abbr = a), width = 0.4, hjust = 0)
+
+  expect_snapshot(out <- ggplotGrob(p3))
 })
