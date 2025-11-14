@@ -60,21 +60,27 @@
 #'   theme(strip.text = element_nfl_wordmark())
 #'
 #' }
-nfl_team_factor <- function(teams, ...){
+nfl_team_factor <- function(teams, ...) {
   # clean the names a bit to make them match the nflreadr team names
   teams <- nflreadr::clean_team_abbrs(teams)
   n_args <- rlang::dots_n(...)
 
   # load nflreadr teams and make it a data.table
-  nfl_teams <- data.table::setDT(nflreadr::load_teams())
+  nfl_teams <- try(data.table::setDT(nflreadr::load_teams()), silent = TRUE)
+  if (nrow(nfl_teams) == 0L) {
+    cli::cli_alert_warning("Failed to download team info. Will return teams data.")
+    return(teams)
+  }
   div_split <- data.table::tstrsplit(nfl_teams$team_division, " ")
   nfl_teams$team_division_rev <- paste(div_split[[2]], div_split[[1]])
 
   # character vector of team names in teams in desired order
   levels <-
-    if (n_args == 0L){# default to ascending order of division and nick name
+    if (n_args == 0L) {
+      # default to ascending order of division and nick name
       nfl_teams[team_abbr %in% teams][order(team_division, team_nick)]$team_abbr
-    } else {# use supplied order in dots
+    } else {
+      # use supplied order in dots
       nfl_teams[team_abbr %in% teams][order(...)]$team_abbr
     }
 
